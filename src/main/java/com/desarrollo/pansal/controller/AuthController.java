@@ -1,3 +1,4 @@
+// AuthController.java
 package com.desarrollo.pansal.controller;
 
 import com.desarrollo.pansal.dto.LoginRequest;
@@ -8,6 +9,9 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,30 +30,37 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
-        logger.info("Intento de inicio de sesión para el usuario: {}", loginRequest.getUsername());
-
         try {
-            Usuario user = authService.authenticate(loginRequest.getUsername(), loginRequest.getPassword());
-            logger.info("Usuario autenticado exitosamente: {}", user.getNombreUsuario());
+            // Autenticar al usuario
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getUsername(),
+                            loginRequest.getPassword()
+                    )
+            );
 
+            // Si la autenticación es exitosa, obtener el usuario
+            Usuario usuario = authService.findByUsername(loginRequest.getUsername());
+
+            // Crear respuesta
             Map<String, Object> response = new HashMap<>();
-            response.put("message", "Login successful");
-            response.put("username", user.getNombreUsuario());
-            response.put("userId", user.getIdUsuario());
-            response.put("role", user.getRol() != null ? user.getRol().getNombreRol() : "Rol no asignado");
-            response.put("profilePic", user.getFotoPerfil());
+            response.put("message", "Login exitoso");
+            response.put("userId", usuario.getIdUsuario());
+            response.put("username", usuario.getNombreUsuario());
+            response.put("role", usuario.getRol().getNombreRol());
 
             return ResponseEntity.ok(response);
 
         } catch (BadCredentialsException e) {
-            logger.warn("Intento de inicio de sesión fallido para el usuario: {}", loginRequest.getUsername());
             Map<String, String> response = new HashMap<>();
             response.put("message", "Credenciales inválidas");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         } catch (Exception e) {
-            logger.error("Error durante el inicio de sesión para el usuario: " + loginRequest.getUsername(), e);
             Map<String, String> response = new HashMap<>();
             response.put("message", "Error en el servidor: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);

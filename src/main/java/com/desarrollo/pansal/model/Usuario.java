@@ -20,7 +20,7 @@ public class Usuario {
     @Column(name = "fotoPerfil")  // Si la foto es opcional, no es necesario nullable = false
     private String fotoPerfil;
 
-    @ManyToOne(fetch = FetchType.LAZY)  // Cambié a LAZY para optimizar la carga de la relación
+    @ManyToOne(fetch = FetchType.EAGER)  // Cambié a EAGER para cargar el Rol junto con el Usuario
     @JoinColumn(name = "idRol", referencedColumnName = "idRol", nullable = false)  // Referencia explícita al nombre de la columna en la tabla 'Rol'
     private Rol rol;
 

@@ -1,3 +1,4 @@
+// AuthService.java
 package com.desarrollo.pansal.service;
 
 import com.desarrollo.pansal.model.Rol;
@@ -6,6 +7,7 @@ import com.desarrollo.pansal.model.Usuario;
 import com.desarrollo.pansal.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -29,7 +31,7 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
 
     public List<Rol> getAllRoles() {
-        return rolRepository.findAll();  // Se obtiene la lista de roles desde el repositorio
+        return rolRepository.findAll();
     }
 
     public Usuario authenticate(String username, String password) {
@@ -38,13 +40,7 @@ public class AuthService {
         Usuario usuario = usuarioRepository.findByNombreUsuario(username)
                 .orElseThrow(() -> new BadCredentialsException("Usuario no encontrado"));
 
-        logger.debug("Usuario encontrado: {}", usuario.getNombreUsuario());
-        logger.debug("Hash almacenado: {}", usuario.getContrasena());
-
-        boolean matches = passwordEncoder.matches(password, usuario.getContrasena());
-        logger.debug("¿Contraseña coincide?: {}", matches);
-
-        if (!matches) {
+        if (!passwordEncoder.matches(password, usuario.getContrasena())) {
             throw new BadCredentialsException("Contraseña incorrecta");
         }
 
@@ -59,6 +55,11 @@ public class AuthService {
 
         usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
         return usuarioRepository.save(usuario);
+    }
+
+    public Usuario findByUsername(String username) {
+        return usuarioRepository.findByNombreUsuario(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
     }
 
     public boolean isUsernameAvailable(String username) {

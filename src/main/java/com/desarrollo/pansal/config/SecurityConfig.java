@@ -1,3 +1,4 @@
+// SecurityConfig.java
 package com.desarrollo.pansal.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
