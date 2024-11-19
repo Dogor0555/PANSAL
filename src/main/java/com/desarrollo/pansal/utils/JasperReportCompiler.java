@@ -8,8 +8,8 @@ public class JasperReportCompiler {
     public static void main(String[] args) {
         try {
             // Usar File para manejar las rutas
-            File jrxmlFile = new File("src/main/resources/reports/clientes_report.jrxml");
-            File jasperFile = new File("src/main/resources/reports/clientes_report.jasper");
+            File jrxmlFile = new File("src/main/resources/reports/proveedores_report.jrxml");
+            File jasperFile = new File("src/main/resources/reports/proveedores_report.jasper");
 
             // Verificar si el archivo existe
             if (!jrxmlFile.exists()) {

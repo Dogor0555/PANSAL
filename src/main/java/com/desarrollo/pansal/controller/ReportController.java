@@ -28,7 +28,7 @@ public class ReportController {
             Map<String, Object> reportParameters = new HashMap<>(params);
 
             // Generar el reporte
-            byte[] pdfData = reportService.generatePdfReport(reportParameters);
+            byte[] pdfData = reportService.generateClientePdfReport(reportParameters);
 
             // Preparar la respuesta
             return ResponseEntity.ok()
@@ -44,4 +44,28 @@ public class ReportController {
                     .body("Error al generar el reporte: " + e.getMessage());
         }
     }
+
+
+    @GetMapping("/proveedores")
+    public ResponseEntity<?> generateProveedorReport(@RequestParam Map<String, String> params) {
+        try {
+            Map<String, Object> reportParameters = new HashMap<>(params);
+            byte[] pdfData = reportService.generateProveedorPdfReport(reportParameters);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=proveedores_report.pdf")
+                    .body(pdfData);
+
+        } catch (Exception e) {
+            log.error("Error al generar el reporte de proveedores: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("Error al generar el reporte de proveedores: " + e.getMessage());
+        }
+    }
+
+
+
 }
