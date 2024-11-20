@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="categorias_report" pageWidth="595" pageHeight="842" columnWidth="555"
+              leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="5295763f-6fac-4934-8105-cb86dca56c9f">
+
+    <!-- Consulta SQL para obtener todos los datos de la tabla Categorias -->
+    <queryString>
+        <![CDATA[SELECT idCategoria, nombreCategoria FROM Categorias]]>
+    </queryString>
+
+    <!-- Definición de los campos en el reporte -->
+    <field name="idCategoria" class="java.lang.Long"/>
+    <field name="nombreCategoria" class="java.lang.String"/>
+
+
+    <title>
+        <band height="50">
+            <staticText>
+                <reportElement x="0" y="0" width="555" height="50"/>
+                <text><![CDATA[Reporte de Categorias]]></text>
+            </staticText>
+        </band>
+    </title>
+
+    <detail>
+        <band height="20">
+            <!-- Campo para el idCategoria -->
+            <textField>
+                <reportElement x="0" y="0" width="50" height="20"/>
+                <textFieldExpression><![CDATA[$F{idCategoria}]]></textFieldExpression>
+            </textField>
+            <!-- Campo para el nombreCategoria -->
+            <textField>
+                <reportElement x="60" y="0" width="150" height="20"/>
+                <textFieldExpression><![CDATA[$F{nombreCategoria}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+</jasperReport>

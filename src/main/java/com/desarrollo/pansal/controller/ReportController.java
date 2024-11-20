@@ -66,6 +66,26 @@ public class ReportController {
         }
     }
 
+    @GetMapping("/categorias")
+    public ResponseEntity<?> generateCategoriasReport(@RequestParam Map<String, String> params) {
+        try {
+            Map<String, Object> reportParameters = new HashMap<>(params);
+            byte[] pdfData = reportService.generateCategoriasPdfReport(reportParameters);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=categorias_report.pdf")
+                    .body(pdfData);
+
+        } catch (Exception e) {
+            log.error("Error al generar el reporte de categorias: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("Error al generar el reporte de categorias: " + e.getMessage());
+        }
+    }
+
 
 
 }
