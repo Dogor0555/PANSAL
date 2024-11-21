@@ -86,6 +86,26 @@ public class ReportController {
         }
     }
 
+    @GetMapping("/materiasPrima")
+    public ResponseEntity<?> generateMateriasPrimasReport(@RequestParam Map<String, String> params) {
+        try {
+            Map<String, Object> reportParameters = new HashMap<>(params);
+            byte[] pdfData = reportService.generateMateriasPrimasPdfReport(reportParameters);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=materiasPrimas_report.pdf")
+                    .body(pdfData);
+
+        } catch (Exception e) {
+            log.error("Error al generar el reporte de materias primas: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("Error al generar el reporte de materias primas: " + e.getMessage());
+        }
+    }
+
 
 
 }

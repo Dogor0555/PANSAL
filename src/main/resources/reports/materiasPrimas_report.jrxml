@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="materia_prima_report" pageWidth="595" pageHeight="842" columnWidth="555"
+              leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="d88b6d29-5f44-45e1-a7c6-cd97e2c42a16">
+
+    <!-- Consulta SQL para obtener todos los datos de la tabla MateriaPrima -->
+    <queryString>
+        <![CDATA[SELECT idMateriaPrima, nombreMateriaPrima, unidadMedida FROM MateriaPrima]]>
+    </queryString>
+
+    <!-- Definición de los campos en el reporte -->
+    <field name="idMateriaPrima" class="java.lang.Integer"/>
+    <field name="nombreMateriaPrima" class="java.lang.String"/>
+    <field name="unidadMedida" class="java.lang.String"/>
+
+    <title>
+        <band height="50">
+            <staticText>
+                <reportElement x="0" y="0" width="555" height="50"/>
+                <text><![CDATA[Reporte de Materias Primas]]></text>
+            </staticText>
+        </band>
+    </title>
+
+    <detail>
+        <band height="20">
+            <!-- Campo para idMateriaPrima -->
+            <textField>
+                <reportElement x="0" y="0" width="50" height="20"/>
+                <textFieldExpression><![CDATA[$F{idMateriaPrima}]]></textFieldExpression>
+            </textField>
+            <!-- Campo para nombreMateriaPrima -->
+            <textField>
+                <reportElement x="60" y="0" width="300" height="20"/>
+                <textFieldExpression><![CDATA[$F{nombreMateriaPrima}]]></textFieldExpression>
+            </textField>
+            <!-- Campo para unidadMedida -->
+            <textField>
+                <reportElement x="370" y="0" width="185" height="20"/>
+                <textFieldExpression><![CDATA[$F{unidadMedida}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+</jasperReport>

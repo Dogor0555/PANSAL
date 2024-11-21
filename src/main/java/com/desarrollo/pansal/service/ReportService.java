@@ -6,6 +6,8 @@ import com.desarrollo.pansal.model.Proveedores;
 import com.desarrollo.pansal.repository.ProveedorRepository;
 import com.desarrollo.pansal.model.Categorias;
 import com.desarrollo.pansal.repository.CategoriasRepository;
+import com.desarrollo.pansal.model.MateriaPrima;
+import com.desarrollo.pansal.repository.MateriaPrimaRepository;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.springframework.core.io.ClassPathResource;
@@ -25,11 +27,14 @@ public class ReportService {
     private final ClienteRepository clienteRepository;
     private final ProveedorRepository proveedorRepository; // Repositorio de proveedores
     private final CategoriasRepository categoriasRepository;
+    private final MateriaPrimaRepository materiaPrimaRepository;
 
-    public ReportService(ClienteRepository clienteRepository, ProveedorRepository proveedorRepository, CategoriasRepository categoriasRepository) {
+
+    public ReportService(ClienteRepository clienteRepository, ProveedorRepository proveedorRepository, CategoriasRepository categoriasRepository, MateriaPrimaRepository materiaPrimaRepository) {
         this.clienteRepository = clienteRepository;
         this.proveedorRepository = proveedorRepository;
         this.categoriasRepository = categoriasRepository;
+        this.materiaPrimaRepository = materiaPrimaRepository;
     }
 
     public byte[] generateClientePdfReport(Map<String, Object> parameters) throws Exception {
@@ -211,9 +216,9 @@ public class ReportService {
             List<Categorias> categorias = categoriasRepository.findAll(); // Repositorio de proveedores
             if (categorias.isEmpty()) {
                 log.error("No hay categorias para generar el reporte.");
-                throw new IllegalStateException("No hay proveedores para generar el reporte.");
+                throw new IllegalStateException("No hay categorias para generar el reporte.");
             }
-            log.info("Procesando reporte con {} proveedores", categorias.size());
+            log.info("Procesando reporte con {} categorias", categorias.size());
 
             // Crear la fuente de datos
             JRDataSource dataSource = new JRBeanCollectionDataSource(categorias);
@@ -236,5 +241,74 @@ public class ReportService {
             throw new RuntimeException("Error al generar el reporte PDF de categorias: " + e.getMessage(), e);
         }
     }
+
+    public byte[] generateMateriasPrimasPdfReport(Map<String, Object> parameters) throws Exception {
+        try {
+            // Definir la ruta del archivo .jasper para categorias
+            String jasperPath = "/reports/materiaPrima_report.jasper";
+            ClassPathResource jasperResource = new ClassPathResource(jasperPath);
+
+            JasperReport jasperReport;
+
+            if (jasperResource.exists()) {
+                log.info("El archivo .jasper encontrado en: {}", jasperPath);
+                try (InputStream jasperStream = jasperResource.getInputStream()) {
+                    if (jasperStream.available() == 0) {
+                        log.error("El archivo jasper está vacío.");
+                        throw new IllegalStateException("El archivo .jasper está vacío.");
+                    }
+                    jasperReport = (JasperReport) JRLoader.loadObject(jasperStream);
+                    log.info("Archivo .jasper cargado correctamente.");
+                }
+            } else {
+                log.warn("No se encontró el archivo .jasper, intentando compilar el archivo .jrxml.");
+                String jrxmlPath = "/reports/materiaPrima_report.jrxml";
+                ClassPathResource jrxmlResource = new ClassPathResource(jrxmlPath);
+
+                if (!jrxmlResource.exists()) {
+                    log.error("No se encontraron los archivos del reporte: {} ni {}", jasperPath, jrxmlPath);
+                    throw new IllegalStateException("No se encontraron los archivos del reporte: " + jasperPath + " ni " + jrxmlPath);
+                }
+
+                log.info("Compilando el archivo .jrxml desde: {}", jrxmlPath);
+                try (InputStream jrxmlStream = jrxmlResource.getInputStream()) {
+                    jasperReport = JasperCompileManager.compileReport(jrxmlStream);
+                    log.info("Archivo .jrxml compilado correctamente.");
+                } catch (JRException e) {
+                    log.error("Error al compilar el archivo .jrxml: {}", e.getMessage(), e);
+                    throw new RuntimeException("Error al compilar el archivo .jrxml: " + e.getMessage(), e);
+                }
+            }
+
+            // Obtener los datos de categorias
+            List<MateriaPrima> materiaPrimas = materiaPrimaRepository.findAll(); // Repositorio de proveedores
+            if (materiaPrimas.isEmpty()) {
+                log.error("No hay Materias Primas para generar el reporte.");
+                throw new IllegalStateException("No hay Materias Primas para generar el reporte.");
+            }
+            log.info("Procesando reporte con {} materias primas", materiaPrimas.size());
+
+            // Crear la fuente de datos
+            JRDataSource dataSource = new JRBeanCollectionDataSource(materiaPrimas);
+
+            // Generar el reporte
+            JasperPrint jasperPrint = JasperFillManager.fillReport(
+                    jasperReport,
+                    parameters,
+                    dataSource
+            );
+
+            // Exportar a PDF
+            byte[] pdfData = JasperExportManager.exportReportToPdf(jasperPrint);
+            log.info("Reporte de materias primas generado exitosamente.");
+
+            return pdfData;
+
+        } catch (Exception e) {
+            log.error("Error al generar el reporte de materias primas: {}", e.getMessage(), e);
+            throw new RuntimeException("Error al generar el reporte PDF de materias primas: " + e.getMessage(), e);
+        }
+    }
+
 
 }
