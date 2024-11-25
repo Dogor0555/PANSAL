@@ -106,6 +106,26 @@ public class ReportController {
         }
     }
 
+    @GetMapping("/recetas")
+    public ResponseEntity<?> generateRecetasReport(@RequestParam Map<String, String> params) {
+        try {
+            Map<String, Object> reportParameters = new HashMap<>(params);
+            byte[] pdfData = reportService.generateRecetasPdfReport(reportParameters);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=recetas_report.pdf")
+                    .body(pdfData);
+
+        } catch (Exception e) {
+            log.error("Error al generar el reporte de recetas: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("Error al generar el reporte de recetas: " + e.getMessage());
+        }
+    }
+
 
 
 }
