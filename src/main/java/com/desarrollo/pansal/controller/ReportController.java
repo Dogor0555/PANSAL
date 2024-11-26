@@ -128,4 +128,46 @@ public class ReportController {
 
 
 
+    @GetMapping("/recetas-ingredientes")
+    public ResponseEntity<?> generateRecetasIngredientesReport(@RequestParam Map<String, String> params) {
+        try {
+            Map<String, Object> reportParameters = new HashMap<>(params);
+            byte[] pdfData = reportService.generateRecetasIngredientesPdfReport(reportParameters);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=recetas_ingredientes_report.pdf")
+                    .body(pdfData);
+
+        } catch (Exception e) {
+            log.error("Error al generar el reporte de recetas: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("Error al generar el reporte de recetas: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/inventario")
+    public ResponseEntity<?> generateInventarioReport(@RequestParam Map<String, String> params) {
+        try {
+            Map<String, Object> reportParameters = new HashMap<>(params);
+            byte[] pdfData = reportService.generateInventarioPdfReport(reportParameters);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=inventario_report.pdf")
+                    .body(pdfData);
+
+        } catch (Exception e) {
+            log.error("Error al generar el reporte de inventario: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("Error al generar el reporte de inventario: " + e.getMessage());
+        }
+    }
+
+
+
 }

@@ -2,6 +2,10 @@ package com.desarrollo.pansal.service;
 
 import com.desarrollo.pansal.model.Clientes;
 import com.desarrollo.pansal.repository.ClienteRepository;
+import com.desarrollo.pansal.model.RecetasIngredientes;
+import com.desarrollo.pansal.model.Inventario;
+import com.desarrollo.pansal.repository.InventarioRepository;
+import com.desarrollo.pansal.repository.RecetasIngredientesRepository;
 import com.desarrollo.pansal.model.Proveedores;
 import com.desarrollo.pansal.repository.ProveedorRepository;
 import com.desarrollo.pansal.model.Categorias;
@@ -31,13 +35,21 @@ public class ReportService {
     private final CategoriasRepository categoriasRepository;
     private final MateriaPrimaRepository materiaPrimaRepository;
     private final RecetasRepository recetasRepository;
+    private final RecetasIngredientesRepository  recetasIngredientesRepository;
+    private final InventarioRepository  inventarioRepository;
 
-    public ReportService(ClienteRepository clienteRepository, ProveedorRepository proveedorRepository, CategoriasRepository categoriasRepository, MateriaPrimaRepository materiaPrimaRepository, RecetasRepository recetasRepository) {
+
+
+
+
+    public ReportService(ClienteRepository clienteRepository, ProveedorRepository proveedorRepository, CategoriasRepository categoriasRepository, MateriaPrimaRepository materiaPrimaRepository, RecetasRepository recetasRepository, RecetasIngredientesRepository recetasIngredientesRepository, InventarioRepository  inventarioRepository) {
         this.clienteRepository = clienteRepository;
         this.proveedorRepository = proveedorRepository;
         this.categoriasRepository = categoriasRepository;
         this.materiaPrimaRepository = materiaPrimaRepository;
         this.recetasRepository = recetasRepository;
+        this.recetasIngredientesRepository = recetasIngredientesRepository;
+        this.inventarioRepository = inventarioRepository;
     }
 
     public byte[] generateClientePdfReport(Map<String, Object> parameters) throws Exception {
@@ -382,6 +394,138 @@ public class ReportService {
         }
     }
 
+    public byte[] generateRecetasIngredientesPdfReport(Map<String, Object> parameters) throws Exception {
+        try {
+            // Ruta del archivo .jasper o .jrxml
+            String jasperPath = "/reports/recetas_ingredientes_report.jasper";
+            ClassPathResource jasperResource = new ClassPathResource(jasperPath);
+
+            JasperReport jasperReport;
+
+            if (jasperResource.exists()) {
+                log.info("Archivo .jasper encontrado en: {}", jasperPath);
+                try (InputStream jasperStream = jasperResource.getInputStream()) {
+                    if (jasperStream.available() == 0) {
+                        log.error("El archivo .jasper está vacío.");
+                        throw new IllegalStateException("El archivo .jasper está vacío.");
+                    }
+                    jasperReport = (JasperReport) JRLoader.loadObject(jasperStream);
+                }
+            } else {
+                log.warn("Archivo .jasper no encontrado. Intentando compilar el archivo .jrxml.");
+                String jrxmlPath = "/reports/recetas_ingredientes_report.jrxml";
+                ClassPathResource jrxmlResource = new ClassPathResource(jrxmlPath);
+
+                if (!jrxmlResource.exists()) {
+                    log.error("No se encontraron los archivos de reporte: {} ni {}", jasperPath, jrxmlPath);
+                    throw new IllegalStateException("No se encontraron los archivos de reporte.");
+                }
+
+                log.info("Compilando el archivo .jrxml desde: {}", jrxmlPath);
+                try (InputStream jrxmlStream = jrxmlResource.getInputStream()) {
+                    jasperReport = JasperCompileManager.compileReport(jrxmlStream);
+                } catch (JRException e) {
+                    log.error("Error al compilar el archivo .jrxml: {}", e.getMessage(), e);
+                    throw new RuntimeException("Error al compilar el archivo .jrxml: " + e.getMessage(), e);
+                }
+            }
+
+            // Obtener datos del repositorio
+            List<RecetasIngredientes> recetasIngredientes = recetasIngredientesRepository.findAll();
+            if (recetasIngredientes.isEmpty()) {
+                log.error("No hay datos de recetas e ingredientes para generar el reporte.");
+                throw new IllegalStateException("No hay datos para generar el reporte.");
+            }
+
+            log.info("Procesando reporte con {} registros", recetasIngredientes.size());
+
+            // Crear la fuente de datos
+            JRDataSource dataSource = new JRBeanCollectionDataSource(recetasIngredientes);
+
+            // Generar el reporte
+            JasperPrint jasperPrint = JasperFillManager.fillReport(
+                    jasperReport,
+                    parameters,
+                    dataSource
+            );
+
+            // Exportar a PDF
+            byte[] pdfData = JasperExportManager.exportReportToPdf(jasperPrint);
+            log.info("Reporte generado exitosamente.");
+
+            return pdfData;
+
+        } catch (Exception e) {
+            log.error("Error al generar el reporte PDF: {}", e.getMessage(), e);
+            throw new RuntimeException("Error al generar el reporte PDF: " + e.getMessage(), e);
+        }
+    }
+    public byte[] generateInventarioPdfReport(Map<String, Object> parameters) throws Exception {
+        try {
+            // Ruta del archivo .jasper o .jrxml
+            String jasperPath = "/reports/inventario_report.jasper";
+            ClassPathResource jasperResource = new ClassPathResource(jasperPath);
+
+            JasperReport jasperReport;
+
+            if (jasperResource.exists()) {
+                log.info("Archivo .jasper encontrado en: {}", jasperPath);
+                try (InputStream jasperStream = jasperResource.getInputStream()) {
+                    if (jasperStream.available() == 0) {
+                        log.error("El archivo .jasper está vacío.");
+                        throw new IllegalStateException("El archivo .jasper está vacío.");
+                    }
+                    jasperReport = (JasperReport) JRLoader.loadObject(jasperStream);
+                }
+            } else {
+                log.warn("Archivo .jasper no encontrado. Intentando compilar el archivo .jrxml.");
+                String jrxmlPath = "/reports/inventario_report.jrxml";
+                ClassPathResource jrxmlResource = new ClassPathResource(jrxmlPath);
+
+                if (!jrxmlResource.exists()) {
+                    log.error("No se encontraron los archivos de reporte: {} ni {}", jasperPath, jrxmlPath);
+                    throw new IllegalStateException("No se encontraron los archivos de reporte.");
+                }
+
+                log.info("Compilando el archivo .jrxml desde: {}", jrxmlPath);
+                try (InputStream jrxmlStream = jrxmlResource.getInputStream()) {
+                    jasperReport = JasperCompileManager.compileReport(jrxmlStream);
+                } catch (JRException e) {
+                    log.error("Error al compilar el archivo .jrxml: {}", e.getMessage(), e);
+                    throw new RuntimeException("Error al compilar el archivo .jrxml: " + e.getMessage(), e);
+                }
+            }
+
+            // Obtener datos del repositorio de inventario
+            List<Inventario> inventarios = inventarioRepository.findAll();
+            if (inventarios.isEmpty()) {
+                log.error("No hay datos de inventario para generar el reporte.");
+                throw new IllegalStateException("No hay datos de inventario para generar el reporte.");
+            }
+
+            log.info("Procesando reporte con {} registros de inventario", inventarios.size());
+
+            // Crear la fuente de datos
+            JRDataSource dataSource = new JRBeanCollectionDataSource(inventarios);
+
+            // Generar el reporte
+            JasperPrint jasperPrint = JasperFillManager.fillReport(
+                    jasperReport,
+                    parameters,
+                    dataSource
+            );
+
+            // Exportar a PDF
+            byte[] pdfData = JasperExportManager.exportReportToPdf(jasperPrint);
+            log.info("Reporte de inventario generado exitosamente.");
+
+            return pdfData;
+
+        } catch (Exception e) {
+            log.error("Error al generar el reporte de inventario: {}", e.getMessage(), e);
+            throw new RuntimeException("Error al generar el reporte PDF de inventario: " + e.getMessage(), e);
+        }
+    }
 
 
 }

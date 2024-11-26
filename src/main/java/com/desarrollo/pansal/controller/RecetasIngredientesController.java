@@ -56,7 +56,7 @@ public class RecetasIngredientesController {
     }
 
     // Actualizar un ingrediente de receta existente (PUT)
-    @PutMapping
+    @PutMapping("/{idReceta}/{idMateriaPrima}")
     public ResponseEntity<RecetasIngredientes> actualizarRecetaIngrediente(@RequestBody RecetasIngredientes recetasIngredientes) {
         try {
             RecetasIngredientes actualizado = recetasIngredientesService.actualizarRecetaIngrediente(recetasIngredientes);
